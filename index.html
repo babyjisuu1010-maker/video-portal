@@ -68,21 +68,43 @@ header{
 </div>
 
 <div class="grid" id="videos"></div>
+<div
+  id="pagination"
+  style="
+    text-align:center;
+    padding:20px;
+  ">
+</div>
 
 <script>
 
 let allVideos = [];
 
-async function loadVideos(){
+let currentPage = 1;
+
+let totalPages = 1;
+
+async function loadVideos(page = 1){
 
   try{
 
-    const response = await fetch('/api/video');
-    const data = await response.json();
+    const response =
+      await fetch(`/api/video?page=${page}`);
 
-    allVideos = data.result.files;
+    const data =
+      await response.json();
+
+    allVideos =
+      data.result.files;
+
+    totalPages =
+      data.result.total_pages || 1;
+
+    currentPage = page;
 
     renderVideos(allVideos);
+
+    renderPagination();
 
   }catch(err){
 
@@ -116,6 +138,41 @@ function renderVideos(videos){
 
 }
 
+function renderPagination(){
+
+  let html = '';
+
+  if(currentPage > 1){
+
+    html += `
+      <button onclick="loadVideos(${currentPage-1})">
+        ← Prev
+      </button>
+    `;
+
+  }
+
+  html += `
+    <span style="margin:0 15px;">
+      Halaman ${currentPage} / ${totalPages}
+    </span>
+  `;
+
+  if(currentPage < totalPages){
+
+    html += `
+      <button onclick="loadVideos(${currentPage+1})">
+        Next →
+      </button>
+    `;
+
+  }
+
+  document.getElementById('pagination')
+    .innerHTML = html;
+
+}
+
 document.addEventListener("input",(e)=>{
 
   if(e.target.id==="search"){
@@ -135,7 +192,7 @@ document.addEventListener("input",(e)=>{
 
 });
 
-loadVideos();
+loadVideos(1);
 
 </script>
 
