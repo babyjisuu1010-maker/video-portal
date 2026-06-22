@@ -3,56 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Test API</title>
+<title>Asupan Malam</title>
+
+<style>
+body{
+  margin:0;
+  background:#111;
+  color:#fff;
+  font-family:Arial,sans-serif;
+}
+
+header{
+  background:#1a1a1a;
+  padding:15px;
+  text-align:center;
+  font-size:24px;
+  font-weight:bold;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:15px;
+  padding:15px;
+}
+
+.card{
+  background:#222;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.card img{
+  width:100%;
+  display:block;
+}
+
+.card h3{
+  font-size:14px;
+  padding:10px;
+  margin:0;
+}
+</style>
+
 </head>
 <body>
 
-<h1>Test Video API</h1>
+<header>Asupan Malam</header>
 
-<div id="status">Loading...</div>
-
-<ul id="videoList"></ul>
+<div class="grid" id="videos"></div>
 
 <script>
 
-const API_URL = "https://doodapi.co/api/file/list?key=530203nxa1v3m6ng2kbgdh";
+async function loadVideos(){
 
-async function loadVideos() {
+  try{
 
-  const status = document.getElementById("status");
-  const list = document.getElementById("videoList");
-
-  try {
-
-    status.innerText = "Mengambil data...";
-
-    const response = await fetch(API_URL);
+    const response = await fetch('/api/video');
     const data = await response.json();
-
-    status.innerText =
-      "Status API: " + data.status;
 
     const files = data.result.files;
 
-    list.innerHTML = "";
+    const container =
+      document.getElementById('videos');
 
-    files.forEach(video => {
+    container.innerHTML='';
 
-      const li = document.createElement("li");
+    files.forEach(video=>{
 
-      li.textContent =
-        video.title + " | " + video.file_code;
-
-      list.appendChild(li);
+      container.innerHTML += `
+        <div class="card">
+          <img src="${video.single_img}">
+          <h3>${video.title}</h3>
+        </div>
+      `;
 
     });
 
-  } catch (err) {
+  }catch(err){
 
-    status.innerText =
-      "ERROR: " + err.message;
+    document.getElementById('videos').innerHTML =
+      '<h2>Gagal memuat video</h2>';
 
   }
+
 }
 
 loadVideos();
