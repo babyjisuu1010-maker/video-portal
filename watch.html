@@ -103,17 +103,48 @@ async function loadTitle(){
 
     const files = data.result.files;
 
-    const video = files.find(v => v.file_code === code);
+    const video =
+      files.find(v => v.file_code === code);
 
     if(video){
-      document.getElementById("title").textContent =
-        video.title;
+
+      document.getElementById("title")
+        .textContent = video.title;
+
     }
+
+    const related =
+      files.filter(v => v.file_code !== code)
+           .slice(0,8);
+
+    const container =
+      document.getElementById("relatedVideos");
+
+    container.innerHTML = '';
+
+    related.forEach(v=>{
+
+      container.innerHTML += `
+        <a href="watch.html?code=${v.file_code}"
+           style="text-decoration:none;">
+
+          <div class="related-card">
+
+            <img src="${v.single_img}">
+
+            <h4>${v.title}</h4>
+
+          </div>
+
+        </a>
+      `;
+
+    });
 
   }catch(err){
 
-    document.getElementById("title").textContent =
-      "Video tidak ditemukan";
+    document.getElementById("title")
+      .textContent = "Video tidak ditemukan";
 
   }
 
