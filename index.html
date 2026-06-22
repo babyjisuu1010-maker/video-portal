@@ -133,7 +133,15 @@ const limit = 12;
 
 /* LOAD DATA */
 async function loadVideos(){
-  const res = await fetch('/.netlify/functions/videos');
+  const res = await async function loadVideos(){
+
+  const res = await fetch("https://530203nxa1v3m6ng2kbgdh");
+  const data = await res.json();
+
+  allVideos = data.result?.files || [];
+
+  render();
+}
   const data = await res.json();
 
   allVideos = data.result?.files || [];
