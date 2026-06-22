@@ -122,6 +122,14 @@ async function loadVideos() {
 
     alert("Status: " + res.status);
 
+async function loadVideos() {
+  alert("loadVideos jalan");
+
+  try {
+    const res = await fetch(API_URL);
+
+    alert("Status: " + res.status);
+
     const data = await res.json();
 
     alert(JSON.stringify(data).substring(0,200));
@@ -130,11 +138,6 @@ async function loadVideos() {
     alert("ERROR: " + e);
   }
 }
-
-    // normal format
-    if (data?.result?.files) {
-      files = data.result.files;
-    }
 
     // direct format
     if (data?.files) {
