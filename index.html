@@ -8,40 +8,64 @@
 <style>
 body{
   margin:0;
-  background:#111;
-  color:white;
-  font-family:Arial;
+  background:#0f0f0f;
+  color:#fff;
+  font-family:Arial, sans-serif;
 }
 
+/* header */
 header{
-  padding:15px;
+  background:#181818;
+  padding:16px;
   text-align:center;
-  background:#222;
-  font-size:20px;
+  font-size:22px;
+  font-weight:bold;
+  letter-spacing:1px;
+  border-bottom:1px solid #2a2a2a;
 }
 
+/* grid */
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-  gap:15px;
-  padding:15px;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:14px;
+  padding:14px;
 }
 
+/* card */
 .card{
   background:#1c1c1c;
-  border-radius:8px;
+  border-radius:10px;
   overflow:hidden;
-  cursor:pointer;
+  transition:0.2s;
 }
 
+.card:hover{
+  transform:scale(1.03);
+}
+
+/* thumbnail */
 .card img{
   width:100%;
+  aspect-ratio:16/9;
+  object-fit:cover;
+  display:block;
 }
 
+/* title */
 .card h3{
+  font-size:14px;
   padding:10px;
   margin:0;
-  font-size:14px;
+  color:#e5e5e5;
+  height:40px;
+  overflow:hidden;
+}
+
+/* link reset */
+a{
+  text-decoration:none;
+  color:inherit;
 }
 </style>
 </head>
