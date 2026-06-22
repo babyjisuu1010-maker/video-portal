@@ -114,13 +114,22 @@ const limit = 12;
 /* 🔥 LOAD API */
 async function loadVideos(){
 alert("loadVideos jalan");
+async function loadVideos() {
+  alert("loadVideos jalan");
+
   try {
     const res = await fetch(API_URL);
+
+    alert("Status: " + res.status);
+
     const data = await res.json();
 
-    console.log("API RESPONSE:", data);
+    alert(JSON.stringify(data).substring(0,200));
 
-    let files = [];
+  } catch (e) {
+    alert("ERROR: " + e);
+  }
+}
 
     // normal format
     if (data?.result?.files) {
