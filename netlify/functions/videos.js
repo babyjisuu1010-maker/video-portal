@@ -1,11 +1,10 @@
 exports.handler = async () => {
 
   try {
-
     const apiKey = process.env.DOOD_API_KEY;
 
     const response = await fetch(
-      `https://doodapi.com/api/account/info?key=${apiKey}`
+      `https://doodapi.com/api/file/list?key=${apiKey}`
     );
 
     const data = await response.json();
@@ -15,7 +14,7 @@ exports.handler = async () => {
       body: JSON.stringify(data)
     };
 
-  } catch(error) {
+  } catch (error) {
 
     return {
       statusCode: 500,
