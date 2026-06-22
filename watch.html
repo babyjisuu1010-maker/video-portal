@@ -1,53 +1,55 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Watch Video</title>
+<title>Tonton Video</title>
 
 <style>
 body{
   margin:0;
-  font-family:Arial;
-  background:#0f0f0f;
+  background:#111;
   color:white;
+  font-family:Arial,sans-serif;
 }
 
-header{
+.header{
+  background:#1a1a1a;
   padding:15px;
-  background:#181818;
   text-align:center;
 }
 
-header a{
+.header a{
   color:white;
   text-decoration:none;
+  font-size:20px;
   font-weight:bold;
 }
 
 .container{
-  padding:10px;
+  max-width:900px;
+  margin:auto;
+  padding:15px;
 }
 
 iframe{
   width:100%;
-  height:220px;
+  aspect-ratio:16/9;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
 }
 
-h2{
-  font-size:16px;
-  margin-top:10px;
+#title{
+  margin-top:15px;
+  font-size:20px;
 }
 </style>
 </head>
-
 <body>
 
-<header>
-  <a href="index.html">⬅ Kembali</a>
-</header>
+<div class="header">
+  <a href="index.html">← Kembali ke Home</a>
+</div>
 
 <div class="container">
 
@@ -59,40 +61,38 @@ h2{
 
 <script>
 
-const API_KEY = "API_KEY_KAMU";
+const params = new URLSearchParams(window.location.search);
+const code = params.get("code");
 
-// ambil code dari URL
-const urlParams = new URLSearchParams(window.location.search);
-const code = urlParams.get("code");
+document.getElementById("player").src =
+  `https://dood.wf/e/${code}`;
 
-async function loadVideo(){
+async function loadTitle(){
 
-  if(!code){
-    document.getElementById("title").innerText = "Video tidak ditemukan";
-    return;
+  try{
+
+    const response = await fetch('/api/video');
+    const data = await response.json();
+
+    const files = data.result.files;
+
+    const video = files.find(v => v.file_code === code);
+
+    if(video){
+      document.getElementById("title").textContent =
+        video.title;
+    }
+
+  }catch(err){
+
+    document.getElementById("title").textContent =
+      "Video tidak ditemukan";
+
   }
 
-  try {
-    const res = await fetch(`https://doodapi.co/api/file/info?key=${API_KEY}&file_code=${code}`);
-    const data = await res.json();
-
-    console.log(data);
-
-    const video = data?.result || data;
-
-    document.getElementById("title").innerText =
-      video.title || "No Title";
-
-    // embed player (INI YANG PENTING)
-    document.getElementById("player").src =
-      video.embed_url || video.embed || "";
-
-  } catch (err) {
-    console.log("ERROR:", err);
-  }
 }
 
-loadVideo();
+loadTitle();
 
 </script>
 
