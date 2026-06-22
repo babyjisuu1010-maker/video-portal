@@ -43,6 +43,30 @@ iframe{
   margin-top:15px;
   font-size:20px;
 }
+#relatedVideos{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:15px;
+  margin-top:15px;
+}
+
+.related-card{
+  background:#222;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.related-card img{
+  width:100%;
+  display:block;
+}
+
+.related-card h4{
+  margin:0;
+  padding:10px;
+  font-size:14px;
+  color:white;
+}
 </style>
 </head>
 <body>
@@ -56,6 +80,9 @@ iframe{
   <iframe id="player" allowfullscreen></iframe>
 
   <h2 id="title">Loading...</h2>
+  <h3>Video Lainnya</h3>
+
+<div id="relatedVideos"></div>
 
 </div>
 
