@@ -7,73 +7,88 @@
 
 <style>
 body{
-    margin:0;
-    background:#111;
-    color:white;
-    font-family:Arial,sans-serif;
+  margin:0;
+  background:#111;
+  color:white;
+  font-family:Arial;
 }
 
 header{
-    background:#222;
-    padding:15px;
-    text-align:center;
-    font-size:24px;
-    font-weight:bold;
+  padding:15px;
+  text-align:center;
+  background:#222;
+  font-size:20px;
 }
 
 .grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-    gap:15px;
-    padding:15px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:15px;
+  padding:15px;
 }
 
 .card{
-    background:#1c1c1c;
-    border-radius:8px;
-    overflow:hidden;
+  background:#1c1c1c;
+  border-radius:8px;
+  overflow:hidden;
+  cursor:pointer;
 }
 
 .card img{
-    width:100%;
-    display:block;
+  width:100%;
 }
 
 .card h3{
-    margin:0;
-    padding:10px;
-    font-size:16px;
+  padding:10px;
+  margin:0;
+  font-size:14px;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-VIDEO PORTAL
-</header>
+<header>VIDEO PORTAL</header>
 
-<div class="grid">
+<div class="grid" id="grid"></div>
 
-<a href="watch.html?code=7w62gu1g2j8s">
-    <img src="https://doimg.net/snaps/lplz7ztp2fawjsix.jpg">
-</a>
+<script>
+async function loadVideos(){
 
-<a href="watch.html?code=j3ul6jojyr46">
-    <img src="https://doimg.net/snaps/oce0xai3m9pttu78.jpg">
-</a>
+  const res = await fetch('/.netlify/functions/videos');
+  const data = await res.json();
 
-<div class="card">
-<img src="https://picsum.photos/400/225?3">
-<h3>Video 3</h3>
-</div>
+  const grid = document.getElementById('grid');
 
-<div class="card">
-<img src="https://picsum.photos/400/225?4">
-<h3>Video 4</h3>
-</div>
+  // sesuaikan dengan format API DoodStream
+  const files = data.result?.files || [];
 
-</div>
+  files.forEach(video => {
+
+    const code = video.filecode || video.file_code;
+
+    const title = video.title || "No Title";
+
+    const thumb = video.single_img || video.splash_img;
+
+    const card = document.createElement('div');
+    card.className = "card";
+
+    card.innerHTML = `
+      <a href="watch.html?code=${code}">
+        <img src="${thumb}">
+      </a>
+      <h3>${title}</h3>
+    `;
+
+    grid.appendChild(card);
+
+  });
+
+}
+
+loadVideos();
+</script>
 
 </body>
 </html>
