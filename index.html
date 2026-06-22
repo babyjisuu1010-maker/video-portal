@@ -51,9 +51,27 @@ header{
 
 <header>Asupan Malam</header>
 
+<div style="padding:15px;">
+  <input
+    type="text"
+    id="search"
+    placeholder="Cari video..."
+    style="
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:8px;
+      box-sizing:border-box;
+      font-size:16px;
+    "
+  >
+</div>
+
 <div class="grid" id="videos"></div>
 
 <script>
+
+let allVideos = [];
 
 async function loadVideos(){
 
@@ -62,25 +80,9 @@ async function loadVideos(){
     const response = await fetch('/api/video');
     const data = await response.json();
 
-    const files = data.result.files;
+    allVideos = data.result.files;
 
-    const container =
-      document.getElementById('videos');
-
-    container.innerHTML='';
-
-    files.forEach(video=>{
-
-      container.innerHTML += `
-  <a href="watch.html?code=${video.file_code}" style="text-decoration:none;color:white;">
-    <div class="card">
-      <img src="${video.single_img}">
-      <h3>${video.title}</h3>
-    </div>
-  </a>
-`;
-
-    });
+    renderVideos(allVideos);
 
   }catch(err){
 
@@ -90,6 +92,48 @@ async function loadVideos(){
   }
 
 }
+
+function renderVideos(videos){
+
+  const container =
+    document.getElementById('videos');
+
+  container.innerHTML='';
+
+  videos.forEach(video=>{
+
+    container.innerHTML += `
+      <a href="watch.html?code=${video.file_code}"
+         style="text-decoration:none;color:white;">
+        <div class="card">
+          <img src="${video.single_img}">
+          <h3>${video.title}</h3>
+        </div>
+      </a>
+    `;
+
+  });
+
+}
+
+document.addEventListener("input",(e)=>{
+
+  if(e.target.id==="search"){
+
+    const keyword =
+      e.target.value.toLowerCase();
+
+    const filtered =
+      allVideos.filter(video =>
+        video.title.toLowerCase()
+        .includes(keyword)
+      );
+
+    renderVideos(filtered);
+
+  }
+
+});
 
 loadVideos();
 
