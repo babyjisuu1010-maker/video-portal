@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Video Site</title>
+<title>Video Portal</title>
 
 <style>
 body{
@@ -88,7 +88,7 @@ button:hover{
 <body>
 
 <header>
-  <a href="index.html">STREAM SITE</a>
+  <a href="index.html">VIDEO PORTAL</a>
 </header>
 
 <div class="search">
@@ -104,13 +104,14 @@ button:hover{
 </div>
 
 <script>
-let allVideos = [];
+
+const API_URL = "https://doodapi.co/api/file/list?key=530203nxa1v3m6ng2kbgdh";
+
+let videos = [];
 let currentPage = 1;
 const limit = 12;
 
-/* 🔥 API DOODSTREAM */
-const API_URL = "https://doodapi.co/api/file/list?key=530203nxa1v3m6ng2kbgdh";
-
+/* 🔥 LOAD API */
 async function loadVideos(){
   try {
     const res = await fetch(API_URL);
@@ -118,39 +119,53 @@ async function loadVideos(){
 
     console.log("API RESPONSE:", data);
 
-    // 🔥 SUPER COMPATIBLE PARSER (FIX SEMUA FORMAT API)
-    allVideos =
-      data?.result?.files ||
-      data?.files ||
-      data?.data?.files ||
-      [];
+    let files = [];
 
-    if (!allVideos.length) {
-      console.log("⚠️ VIDEO KOSONG / FORMAT API BERBEDA:", data);
+    // normal format
+    if (data?.result?.files) {
+      files = data.result.files;
     }
+
+    // direct format
+    if (data?.files) {
+      files = data.files;
+    }
+
+    // folder format (PENTING UNTUK KAMU)
+    if (data?.result?.folders) {
+      data.result.folders.forEach(folder => {
+        if (folder.files) {
+          files = files.concat(folder.files);
+        }
+      });
+    }
+
+    videos = files;
 
     render();
 
   } catch (err) {
-    console.log("ERROR FETCH API:", err);
+    console.log("ERROR LOAD API:", err);
   }
 }
 
-/* SEARCH */
+/* 🔍 SEARCH */
 function filtered(){
   const q = document.getElementById("search").value.toLowerCase();
 
-  return allVideos.filter(v =>
+  return videos.filter(v =>
     (v.title || v.name || v.file_title || "").toLowerCase().includes(q)
   );
 }
 
-/* RENDER */
+/* 🎬 RENDER */
 function render(){
+
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
 
   const list = filtered();
+
   const totalPages = Math.ceil(list.length / limit) || 1;
 
   if(currentPage > totalPages) currentPage = 1;
@@ -160,7 +175,7 @@ function render(){
 
   pageItems.forEach(v => {
 
-    const code = v.filecode || v.file_code;
+    const code = v.file_code || v.filecode;
     const title = v.title || v.name || v.file_title || "No Title";
     const thumb = v.single_img || v.splash_img || v.thumb;
 
@@ -178,13 +193,13 @@ function render(){
     `Page ${currentPage} / ${totalPages}`;
 }
 
-/* SEARCH */
+/* 🔍 INPUT SEARCH */
 document.getElementById("search").addEventListener("input", () => {
   currentPage = 1;
   render();
 });
 
-/* PAGINATION */
+/* ⬅️➡️ PAGINATION */
 document.getElementById("prev").onclick = () => {
   if(currentPage > 1){
     currentPage--;
@@ -202,6 +217,7 @@ document.getElementById("next").onclick = () => {
 };
 
 loadVideos();
+
 </script>
 
 </body>
