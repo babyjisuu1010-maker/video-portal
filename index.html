@@ -1,8 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Portal</title>
+
+<style>
+body{
+  margin:0;
+  background:#0f0f0f;
+  color:#fff;
+  font-family:Arial, sans-serif;
+}
+
+/* HEADER */
+header{
+  background:#181818;
+  padding:16px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+  border-bottom:1px solid #2a2a2a;
+}
+
+/* SEARCH */
+.search-box{
+  padding:12px;
+  text-align:center;
+}
+
+.search-box input{
+  width:90%;
+  max-width:400px;
+  padding:10px;
+  border:none;
+  border-radius:6px;
+  outline:none;
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:14px;
+  padding:14px;
+}
+
+/* CARD */
+.card{
+  background:#1c1c1c;
+  border-radius:10px;
+  overflow:hidden;
+  transition:0.2s;
+}
+
+.card:hover{
+  transform:scale(1.03);
+}
+
+.card img{
+  width:100%;
+  aspect-ratio:16/9;
+  object-fit:cover;
+}
+
+.card h3{
+  font-size:14px;
+  padding:10px;
+  margin:0;
+  height:40px;
+  overflow:hidden;
+}
+
+/* PAGINATION */
+.pagination{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  padding:15px;
+}
+
+.pagination button{
+  padding:8px 12px;
+  border:none;
+  background:#2a2a2a;
+  color:white;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.pagination button:hover{
+  background:#3a3a3a;
+}
+
+a{
+  text-decoration:none;
+  color:inherit;
+}
+</style>
+</head>
+
+<body>
+
+<header>VIDEO PORTAL</header>
+
+<!-- SEARCH -->
+<div class="search-box">
+  <input type="text" id="search" placeholder="Search video...">
+</div>
+
+<!-- GRID -->
+<div class="grid" id="grid"></div>
+
+<!-- PAGINATION -->
+<div class="pagination">
+  <button id="prev">Prev</button>
+  <span id="pageInfo"></span>
+  <button id="next">Next</button>
+</div>
+
 <script>
 let allVideos = [];
 let currentPage = 1;
 const limit = 12;
 
+/* LOAD DATA */
 async function loadVideos(){
   const res = await fetch('/.netlify/functions/videos');
   const data = await res.json();
@@ -12,6 +135,7 @@ async function loadVideos(){
   render();
 }
 
+/* FILTER SEARCH */
 function getFilteredVideos(){
   const keyword = document.getElementById("search").value.toLowerCase();
 
@@ -20,6 +144,7 @@ function getFilteredVideos(){
   );
 }
 
+/* RENDER */
 function render(){
 
   const grid = document.getElementById('grid');
@@ -82,3 +207,6 @@ document.getElementById("next").addEventListener("click", () => {
 
 loadVideos();
 </script>
+
+</body>
+</html>
