@@ -72,11 +72,13 @@ async function loadVideos(){
     files.forEach(video=>{
 
       container.innerHTML += `
-        <div class="card">
-          <img src="${video.single_img}">
-          <h3>${video.title}</h3>
-        </div>
-      `;
+  <a href="watch.html?code=${video.file_code}" style="text-decoration:none;color:white;">
+    <div class="card">
+      <img src="${video.single_img}">
+      <h3>${video.title}</h3>
+    </div>
+  </a>
+`;
 
     });
 
