@@ -1,233 +1,59 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Video Portal</title>
-
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0f0f0f;
-  color:white;
-}
-
-header{
-  background:#181818;
-  padding:15px;
-  text-align:center;
-  font-size:20px;
-  font-weight:bold;
-}
-
-header a{
-  color:white;
-  text-decoration:none;
-}
-
-.search{
-  padding:10px;
-  text-align:center;
-}
-
-.search input{
-  width:90%;
-  max-width:400px;
-  padding:10px;
-  border:none;
-  border-radius:6px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-  gap:12px;
-  padding:12px;
-}
-
-.card{
-  background:#1c1c1c;
-  border-radius:8px;
-  overflow:hidden;
-}
-
-.card img{
-  width:100%;
-  aspect-ratio:16/9;
-  object-fit:cover;
-}
-
-.card h3{
-  font-size:14px;
-  padding:8px;
-  margin:0;
-}
-
-.pagination{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:10px;
-  padding:15px;
-}
-
-button{
-  padding:8px 12px;
-  border:none;
-  background:#2a2a2a;
-  color:white;
-  border-radius:6px;
-}
-button:hover{
-  background:#444;
-}
-</style>
+<title>Test API</title>
 </head>
-
 <body>
 
-<header>
-  <a href="index.html">VIDEO PORTAL</a>
-</header>
+<h1>Test Video API</h1>
 
-<div class="search">
-  <input id="search" placeholder="Search video...">
-</div>
+<div id="status">Loading...</div>
 
-<div class="grid" id="grid"></div>
-
-<div class="pagination">
-  <button id="prev">Prev</button>
-  <span id="pageInfo"></span>
-  <button id="next">Next</button>
-</div>
+<ul id="videoList"></ul>
 
 <script>
 
 const API_URL = "https://doodapi.co/api/file/list?key=530203nxa1v3m6ng2kbgdh";
 
-let videos = [];
-let currentPage = 1;
-const limit = 12;
-
-/* 🔥 LOAD API */
-async function loadVideos(){
-alert("loadVideos jalan");
 async function loadVideos() {
-  alert("loadVideos jalan");
+
+  const status = document.getElementById("status");
+  const list = document.getElementById("videoList");
 
   try {
-    const res = await fetch(API_URL);
 
-    alert("Status: " + res.status);
+    status.innerText = "Mengambil data...";
 
-async function loadVideos() {
-  alert("loadVideos jalan");
+    const response = await fetch(API_URL);
+    const data = await response.json();
 
-  try {
-    const res = await fetch(API_URL);
+    status.innerText =
+      "Status API: " + data.status;
 
-    alert("Status: " + res.status);
+    const files = data.result.files;
 
-    const data = await res.json();
+    list.innerHTML = "";
 
-    alert(JSON.stringify(data).substring(0,200));
+    files.forEach(video => {
 
-  } catch (e) {
-    alert("ERROR: " + e);
-  }
-}
+      const li = document.createElement("li");
 
-    // direct format
-    if (data?.files) {
-      files = data.files;
-    }
+      li.textContent =
+        video.title + " | " + video.file_code;
 
-    // folder format (PENTING UNTUK KAMU)
-    if (data?.result?.folders) {
-      data.result.folders.forEach(folder => {
-        if (folder.files) {
-          files = files.concat(folder.files);
-        }
-      });
-    }
+      list.appendChild(li);
 
-    videos = files;
-
-    render();
+    });
 
   } catch (err) {
-    console.log("ERROR LOAD API:", err);
+
+    status.innerText =
+      "ERROR: " + err.message;
+
   }
 }
-
-/* 🔍 SEARCH */
-function filtered(){
-  const q = document.getElementById("search").value.toLowerCase();
-
-  return videos.filter(v =>
-    (v.title || v.name || v.file_title || "").toLowerCase().includes(q)
-  );
-}
-
-/* 🎬 RENDER */
-function render(){
-
-  const grid = document.getElementById("grid");
-  grid.innerHTML = "";
-
-  const list = filtered();
-
-  const totalPages = Math.ceil(list.length / limit) || 1;
-
-  if(currentPage > totalPages) currentPage = 1;
-
-  const start = (currentPage - 1) * limit;
-  const pageItems = list.slice(start, start + limit);
-
-  pageItems.forEach(v => {
-
-    const code = v.file_code || v.filecode;
-    const title = v.title || v.name || v.file_title || "No Title";
-    const thumb = v.single_img || v.splash_img || v.thumb;
-
-    grid.innerHTML += `
-      <div class="card">
-        <a href="watch.html?code=${code}">
-          <img src="${thumb}">
-        </a>
-        <h3>${title}</h3>
-      </div>
-    `;
-  });
-
-  document.getElementById("pageInfo").innerText =
-    `Page ${currentPage} / ${totalPages}`;
-}
-
-/* 🔍 INPUT SEARCH */
-document.getElementById("search").addEventListener("input", () => {
-  currentPage = 1;
-  render();
-});
-
-/* ⬅️➡️ PAGINATION */
-document.getElementById("prev").onclick = () => {
-  if(currentPage > 1){
-    currentPage--;
-    render();
-  }
-};
-
-document.getElementById("next").onclick = () => {
-  const totalPages = Math.ceil(filtered().length / limit) || 1;
-
-  if(currentPage < totalPages){
-    currentPage++;
-    render();
-  }
-};
 
 loadVideos();
 
