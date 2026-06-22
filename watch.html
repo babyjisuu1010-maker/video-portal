@@ -114,8 +114,10 @@ async function loadTitle(){
     }
 
     const related =
-      files.filter(v => v.file_code !== code)
-           .slice(0,8);
+  files
+    .filter(v => v.file_code !== code)
+    .sort(() => Math.random() - 0.5)
+    .slice(0,8);
 
     const container =
       document.getElementById("relatedVideos");
