@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ASUPAN MALAM</title>
+<title>Video Site</title>
 
 <style>
 body{
@@ -13,7 +13,6 @@ body{
   color:white;
 }
 
-/* HEADER */
 header{
   background:#181818;
   padding:15px;
@@ -27,7 +26,6 @@ header a{
   text-decoration:none;
 }
 
-/* SEARCH */
 .search{
   padding:10px;
   text-align:center;
@@ -37,11 +35,10 @@ header a{
   width:90%;
   max-width:400px;
   padding:10px;
-  border-radius:6px;
   border:none;
+  border-radius:6px;
 }
 
-/* GRID */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
@@ -67,7 +64,6 @@ header a{
   margin:0;
 }
 
-/* PAGINATION */
 .pagination{
   display:flex;
   justify-content:center;
@@ -92,7 +88,7 @@ button:hover{
 <body>
 
 <header>
-  <a href="index.html">ASUPAN MALAM</a>
+  <a href="index.html">STREAM SITE</a>
 </header>
 
 <div class="search">
@@ -112,29 +108,40 @@ let allVideos = [];
 let currentPage = 1;
 const limit = 12;
 
-/* 🔥 GANTI API KAMU DI SINI */
-const API_URL = "https://doodapi.co/api/file/list?key={530203nxa1v3m6ng2kbgdh";
+/* 🔥 API DOODSTREAM */
+const API_URL = "https://doodapi.co/api/file/list?key=530203nxa1v3m6ng2kbgdh";
 
 async function loadVideos(){
   try {
     const res = await fetch(API_URL);
     const data = await res.json();
 
-    console.log("API DATA:", data);
+    console.log("API RESPONSE:", data);
 
-    allVideos = data.result?.files || [];
+    // 🔥 SUPER COMPATIBLE PARSER (FIX SEMUA FORMAT API)
+    allVideos =
+      data?.result?.files ||
+      data?.files ||
+      data?.data?.files ||
+      [];
+
+    if (!allVideos.length) {
+      console.log("⚠️ VIDEO KOSONG / FORMAT API BERBEDA:", data);
+    }
+
     render();
 
   } catch (err) {
-    console.log("ERROR:", err);
+    console.log("ERROR FETCH API:", err);
   }
 }
 
-/* SEARCH FILTER */
+/* SEARCH */
 function filtered(){
   const q = document.getElementById("search").value.toLowerCase();
+
   return allVideos.filter(v =>
-    (v.title || v.name || "").toLowerCase().includes(q)
+    (v.title || v.name || v.file_title || "").toLowerCase().includes(q)
   );
 }
 
@@ -154,8 +161,8 @@ function render(){
   pageItems.forEach(v => {
 
     const code = v.filecode || v.file_code;
-    const title = v.title || v.name || "No Title";
-    const thumb = v.single_img || v.splash_img;
+    const title = v.title || v.name || v.file_title || "No Title";
+    const thumb = v.single_img || v.splash_img || v.thumb;
 
     grid.innerHTML += `
       <div class="card">
@@ -187,6 +194,7 @@ document.getElementById("prev").onclick = () => {
 
 document.getElementById("next").onclick = () => {
   const totalPages = Math.ceil(filtered().length / limit) || 1;
+
   if(currentPage < totalPages){
     currentPage++;
     render();
