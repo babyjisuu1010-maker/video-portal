@@ -2,170 +2,234 @@
 <html>
 <head>
   <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-35N6J0GV0G"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-35N6J0GV0G"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-35N6J0GV0G');
+  </script>
 
-  gtag('config', 'G-35N6J0GV0G');
-</script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tonton Video</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tonton Video - Asupan Malam</title>
 
-<link rel="icon" type="image/png" href="favicon.png">
+  <link rel="icon" type="image/png" href="favicon.png">
 
-<style>
-body{
-  margin:0;
-  background:#111;
-  color:white;
-  font-family:Arial,sans-serif;
-}
-
-.header{
-  background:#1a1a1a;
-  padding:15px;
-  text-align:center;
-}
-
-.header a{
-  color:white;
-  text-decoration:none;
-  font-size:20px;
-  font-weight:bold;
-}
-
-.container{
-  max-width:900px;
-  margin:auto;
-  padding:15px;
-}
-
-iframe{
-  width:100%;
-  aspect-ratio:16/9;
-  border:none;
-  border-radius:10px;
-}
-
-#title{
-  margin-top:15px;
-  font-size:20px;
-}
-#relatedVideos{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-  gap:15px;
-  margin-top:15px;
-}
-
-.related-card{
-  background:#222;
-  border-radius:10px;
-  overflow:hidden;
-}
-
-.related-card img{
-  width:100%;
-  display:block;
-}
-
-.related-card h4{
-  margin:0;
-  padding:10px;
-  font-size:14px;
-  color:white;
-}
-</style>
-</head>
-<body>
-
-<div class="header">
-  <a href="index.html">← Kembali ke Home</a>
-</div>
-
-<div class="container">
-
-  <iframe id="player" allowfullscreen></iframe>
-
-  <h2 id="title">Loading...</h2>
-  <h3>Video Lainnya</h3>
-
-<div id="relatedVideos"></div>
-
-</div>
-
-<script>
-
-const params = new URLSearchParams(window.location.search);
-const code = params.get("code");
-
-document.getElementById("player").src =
-  `https://dood.wf/e/${code}`;
-
-async function loadTitle(){
-
-  try{
-
-    const response = await fetch('/api/video');
-    const data = await response.json();
-
-    const files = data.result.files;
-
-    const video =
-      files.find(v => v.file_code === code);
-
-    if(video){
-
-      document.getElementById("title")
-        .textContent = video.title;
-
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
     }
 
-    const related =
-  files
-    .filter(v => v.file_code !== code)
-    .sort(() => Math.random() - 0.5)
-    .slice(0,8);
+    .header {
+      background: #1a1a1a;
+      padding: 15px;
+      text-align: center;
+    }
 
-    const container =
-      document.getElementById("relatedVideos");
+    .header a {
+      color: white;
+      text-decoration: none;
+      font-size: 20px;
+      font-weight: bold;
+    }
 
-    container.innerHTML = '';
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 15px;
+    }
 
-    related.forEach(v=>{
+    iframe {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border: none;
+      border-radius: 10px;
+    }
 
-      container.innerHTML += `
-        <a href="watch.html?code=${v.file_code}"
-           style="text-decoration:none;">
+    #title {
+      margin-top: 15px;
+      font-size: 20px;
+      overflow-wrap: anywhere;
+    }
 
-          <div class="related-card">
+    .tutorial {
+      background: #202020;
+      border: 1px solid #383838;
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 15px;
+      line-height: 1.6;
+    }
 
-            <img src="${v.single_img}">
+    .tutorial h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #ffd54f;
+      font-size: 17px;
+    }
 
-            <h4>${v.title}</h4>
+    .tutorial ol {
+      margin: 0;
+      padding-left: 22px;
+    }
 
-          </div>
+    .tutorial li {
+      margin-bottom: 8px;
+    }
 
-        </a>
-      `;
+    .tutorial .note {
+      margin-bottom: 0;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #383838;
+      color: #ccc;
+      font-size: 13px;
+    }
 
-    });
+    #relatedVideos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
 
-  }catch(err){
+    .related-card {
+      background: #222;
+      border-radius: 10px;
+      overflow: hidden;
+    }
 
-    document.getElementById("title")
-      .textContent = "Video tidak ditemukan";
+    .related-card img {
+      width: 100%;
+      display: block;
+    }
 
-  }
+    .related-card h4 {
+      margin: 0;
+      padding: 10px;
+      font-size: 14px;
+      color: white;
+    }
+  </style>
+</head>
 
-}
+<body>
 
-loadTitle();
+  <div class="header">
+    <a href="index.html">← Kembali ke Home</a>
+  </div>
 
-</script>
+  <div class="container">
+
+    <iframe
+      id="player"
+      allowfullscreen
+      title="Pemutar video">
+    </iframe>
+
+    <h2 id="title">Memuat video...</h2>
+
+    <!-- Panduan menonton -->
+    <div class="tutorial">
+      <h3>📌 CARA MENONTON VIDEO</h3>
+
+      <ol>
+        <li>Tekan tombol Play pada pemutar video untuk mulai menonton.</li>
+        <li>Jika muncul tab atau jendela iklan, tutup tab tersebut dan kembali ke halaman video.</li>
+        <li>Tekan tombol Play kembali jika video belum berjalan.</li>
+        <li>Ulangi jika diperlukan sampai video berhasil diputar.</li>
+        <li>Setelah video mulai diputar, tekan tombol Full Screen (⛶) di bagian kanan atas pemutar video agar lebih nyaman menonton.</li>
+      </ol>
+
+      <p class="note">
+        Catatan: Iklan pop-up dapat berasal dari layanan pemutar video pihak ketiga.
+        Mode layar penuh tidak menjamin iklan berhenti muncul.
+      </p>
+    </div>
+
+    <h3>Video Lainnya</h3>
+
+    <div id="relatedVideos"></div>
+
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+
+    const player = document.getElementById("player");
+    const titleElement = document.getElementById("title");
+
+    if (code) {
+      player.src = `https://dood.wf/e/${encodeURIComponent(code)}`;
+    } else {
+      titleElement.textContent = "Video tidak ditemukan";
+    }
+
+    async function loadTitle() {
+      try {
+        const response = await fetch("/api/video?page=1");
+
+        if (!response.ok) {
+          throw new Error("Gagal mengambil data video");
+        }
+
+        const data = await response.json();
+        const files = data.result.files;
+
+        const video = files.find(v => v.file_code === code);
+
+        if (video) {
+          titleElement.textContent = video.title;
+          document.title = video.title + " - Asupan Malam";
+        } else {
+          titleElement.textContent = "Video tidak ditemukan";
+        }
+
+        const related = files
+          .filter(v => v.file_code !== code)
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 8);
+
+        const container = document.getElementById("relatedVideos");
+        container.innerHTML = "";
+
+        related.forEach(v => {
+          const link = document.createElement("a");
+          link.href = "watch.html?code=" + encodeURIComponent(v.file_code);
+          link.style.textDecoration = "none";
+
+          const card = document.createElement("div");
+          card.className = "related-card";
+
+          const img = document.createElement("img");
+          img.src = v.single_img || "";
+          img.alt = v.title || "Video";
+          img.loading = "lazy";
+
+          const heading = document.createElement("h4");
+          heading.textContent = v.title || "Tanpa judul";
+
+          card.appendChild(img);
+          card.appendChild(heading);
+          link.appendChild(card);
+          container.appendChild(link);
+        });
+
+      } catch (err) {
+        titleElement.textContent = "Judul video tidak dapat dimuat";
+        console.error(err);
+      }
+    }
+
+    if (code) {
+      loadTitle();
+    }
+  </script>
 
 </body>
 </html>
