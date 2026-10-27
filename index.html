@@ -1,221 +1,391 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-35N6J0GV0G"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
 
-  gtag('config', 'G-35N6J0GV0G');
-</script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Asupan Malam</title>
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-35N6J0GV0G"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-35N6J0GV0G');
+  </script>
 
-<link rel="icon" type="image/png" href="favicon.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Asupan Malam</title>
 
-<style>
-body{
-  margin:0;
-  background:#111;
-  color:#fff;
-  font-family:Arial,sans-serif;
-}
+  <link rel="icon" type="image/png" href="favicon.png">
 
-header{
-  background:#1a1a1a;
-  padding:15px;
-  text-align:center;
-  font-size:24px;
-  font-weight:bold;
-}
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
 
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-  gap:15px;
-  padding:15px;
-}
+    header {
+      background: #1a1a1a;
+      padding: 15px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+    }
 
-.card{
-  background:#222;
-  border-radius:10px;
-  overflow:hidden;
-}
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 15px;
+      padding: 15px;
+    }
 
-.card img{
-  width:100%;
-  display:block;
-}
+    .card {
+      background: #222;
+      border-radius: 10px;
+      overflow: hidden;
+    }
 
-.card h3{
-  font-size:14px;
-  padding:10px;
-  margin:0;
-}
-</style>
+    .card img {
+      width: 100%;
+      display: block;
+    }
+
+    .card h3 {
+      font-size: 14px;
+      padding: 10px;
+      margin: 0;
+    }
+
+    #pagination button {
+      padding: 8px 12px;
+      margin: 4px;
+      cursor: pointer;
+    }
+
+    #pagination span {
+      display: inline-block;
+      margin: 8px;
+    }
+  </style>
 
 </head>
+
 <body>
 
-<header>
-  <a href="index.html"
-     style="
-       color:white;
-       text-decoration:none;
-     ">
-    Asupan Malam
-  </a>
-</header>
+  <header>
+    <a href="index.html"
+       style="color:white;text-decoration:none;">
+      Asupan Malam
+    </a>
+  </header>
 
-<div style="padding:15px;">
-  <input
-    type="text"
-    id="search"
-    placeholder="Cari video..."
-    style="
-      width:100%;
-      padding:12px;
-      border:none;
-      border-radius:8px;
-      box-sizing:border-box;
-      font-size:16px;
-    "
-  >
-</div>
+  <div style="padding:15px;">
+    <input
+      type="text"
+      id="search"
+      placeholder="Cari video..."
+      autocomplete="off"
+      style="
+        width:100%;
+        padding:12px;
+        border:none;
+        border-radius:8px;
+        box-sizing:border-box;
+        font-size:16px;
+      "
+    >
+  </div>
 
-<div class="grid" id="videos"></div>
-<div
-  id="pagination"
-  style="
-    text-align:center;
-    padding:20px;
-  ">
-</div>
+  <div class="grid" id="videos"></div>
 
-<script>
+  <div id="pagination" style="text-align:center;padding:20px;"></div>
 
-let allVideos = [];
+  <script>
+    let allVideos = [];
+    let filteredVideos = [];
 
-let currentPage = 1;
+    let currentPage = 1;
+    let totalPages = 1;
 
-let totalPages = 1;
+    let searchPage = 1;
+    let searchMode = false;
 
-async function loadVideos(page = 1){
+    let videosPerPage = 20;
+    let allVideosPromise = null;
 
-  try{
+    // Memuat halaman video biasa
+    async function loadVideos(page = 1) {
+      try {
+        searchMode = false;
+        currentPage = page;
 
-    const response =
-      await fetch(`/api/video?page=${page}`);
+        const response = await fetch(`/api/video?page=${page}`);
 
-    const data =
-      await response.json();
+        if (!response.ok) {
+          throw new Error("Gagal mengambil data video");
+        }
 
-    allVideos =
-      data.result.files;
+        const data = await response.json();
 
-    totalPages =
-      data.result.total_pages || 1;
+        if (!data.result || !Array.isArray(data.result.files)) {
+          throw new Error("Format data video tidak sesuai");
+        }
 
-    currentPage = page;
+        allVideos = data.result.files;
+        totalPages = Number(data.result.total_pages) || 1;
 
-    renderVideos(allVideos);
+        if (page === 1 && allVideos.length > 0) {
+          videosPerPage = allVideos.length;
+        }
 
-    renderPagination();
+        renderVideos(allVideos);
+        renderPagination();
 
-  }catch(err){
+      } catch (err) {
+        document.getElementById("videos").innerHTML =
+          "<h2>Gagal memuat video</h2>";
 
-    document.getElementById('videos').innerHTML =
-      '<h2>Gagal memuat video</h2>';
+        console.error(err);
+      }
+    }
 
-  }
+    // Mengambil video dari seluruh halaman API
+    async function fetchAllVideos() {
+      if (allVideosPromise) {
+        return allVideosPromise;
+      }
 
-}
+      allVideosPromise = (async () => {
+        const firstResponse = await fetch("/api/video?page=1");
 
-function renderVideos(videos){
+        if (!firstResponse.ok) {
+          throw new Error("Gagal mengambil halaman pertama");
+        }
 
-  const container =
-    document.getElementById('videos');
+        const firstData = await firstResponse.json();
 
-  container.innerHTML='';
+        if (
+          !firstData.result ||
+          !Array.isArray(firstData.result.files)
+        ) {
+          throw new Error("Data video tidak valid");
+        }
 
-  videos.forEach(video=>{
+        const pages = Number(firstData.result.total_pages) || 1;
 
-    container.innerHTML += `
-      <a href="watch.html?code=${video.file_code}"
-         style="text-decoration:none;color:white;">
-        <div class="card">
-          <img src="${video.single_img}">
-          <h3>${video.title}</h3>
-        </div>
-      </a>
-    `;
+        let videos = [...firstData.result.files];
 
-  });
+        if (videos.length > 0) {
+          videosPerPage = videos.length;
+        }
 
-}
+        // Mengambil halaman berikutnya secara berurutan
+        for (let page = 2; page <= pages; page++) {
+          const response = await fetch(`/api/video?page=${page}`);
 
-function renderPagination(){
+          if (!response.ok) {
+            throw new Error("Gagal mengambil halaman " + page);
+          }
 
-  console.log("totalPages =", totalPages);
+          const data = await response.json();
 
-  let html = '';
+          if (!data.result || !Array.isArray(data.result.files)) {
+            throw new Error("Data halaman " + page + " tidak valid");
+          }
 
-  if(currentPage > 1){
+          videos = videos.concat(data.result.files);
+        }
 
-    html += `
-      <button onclick="loadVideos(${currentPage-1})">
-        ← Prev
-      </button>
-    `;
+        return videos;
+      })();
 
-  }
+      try {
+        return await allVideosPromise;
+      } catch (err) {
+        allVideosPromise = null;
+        throw err;
+      }
+    }
 
-  html += `
-    <span style="margin:0 15px;">
-      Halaman ${currentPage} / ${totalPages}
-    </span>
-  `;
+    // Menampilkan daftar video
+    function renderVideos(videos) {
+      const container = document.getElementById("videos");
 
-  if(currentPage < totalPages){
+      container.innerHTML = "";
 
-    html += `
-      <button onclick="loadVideos(${currentPage+1})">
-        Next →
-      </button>
-    `;
+      if (!videos.length) {
+        container.innerHTML =
+          "<p style='padding:10px;'>Video tidak ditemukan.</p>";
+        return;
+      }
 
-  }
+      videos.forEach(video => {
+        const link = document.createElement("a");
 
-  document.getElementById('pagination')
-    .innerHTML = html;
+        link.href =
+          "watch.html?code=" + encodeURIComponent(video.file_code);
 
-}
+        link.style.textDecoration = "none";
+        link.style.color = "white";
 
-document.addEventListener("input",(e)=>{
+        const card = document.createElement("div");
+        card.className = "card";
 
-  if(e.target.id==="search"){
+        const img = document.createElement("img");
+        img.src = video.single_img || "";
+        img.alt = video.title || "Video";
+        img.loading = "lazy";
 
-    const keyword =
-      e.target.value.toLowerCase();
+        const title = document.createElement("h3");
+        title.textContent = video.title || "Tanpa judul";
 
-    const filtered =
-      allVideos.filter(video =>
-        video.title.toLowerCase()
-        .includes(keyword)
+        card.appendChild(img);
+        card.appendChild(title);
+        link.appendChild(card);
+
+        container.appendChild(link);
+      });
+    }
+
+    // Pagination untuk daftar video biasa dan hasil pencarian
+    function renderPagination() {
+      const container = document.getElementById("pagination");
+
+      let page;
+      let pages;
+
+      if (searchMode) {
+        page = searchPage;
+
+        pages = Math.max(
+          1,
+          Math.ceil(filteredVideos.length / videosPerPage)
+        );
+      } else {
+        page = currentPage;
+        pages = totalPages;
+      }
+
+      let html = "";
+
+      if (page > 1) {
+        html += `
+          <button id="prevButton">← Prev</button>
+        `;
+      }
+
+      html += `
+        <span>Halaman ${page} / ${pages}</span>
+      `;
+
+      if (page < pages) {
+        html += `
+          <button id="nextButton">Next →</button>
+        `;
+      }
+
+      container.innerHTML = html;
+
+      const prev = document.getElementById("prevButton");
+      const next = document.getElementById("nextButton");
+
+      if (prev) {
+        prev.addEventListener("click", () => {
+          if (searchMode) {
+            showSearchPage(searchPage - 1);
+          } else {
+            loadVideos(currentPage - 1);
+          }
+        });
+      }
+
+      if (next) {
+        next.addEventListener("click", () => {
+          if (searchMode) {
+            showSearchPage(searchPage + 1);
+          } else {
+            loadVideos(currentPage + 1);
+          }
+        });
+      }
+    }
+
+    // Menampilkan satu halaman hasil pencarian
+    function showSearchPage(page) {
+      const pages = Math.max(
+        1,
+        Math.ceil(filteredVideos.length / videosPerPage)
       );
 
-    renderVideos(filtered);
+      searchPage = Math.min(Math.max(1, page), pages);
 
-  }
+      const start = (searchPage - 1) * videosPerPage;
+      const results = filteredVideos.slice(
+        start,
+        start + videosPerPage
+      );
 
-});
+      renderVideos(results);
+      renderPagination();
+    }
 
-loadVideos(1);
+    // Melakukan pencarian pada seluruh halaman API
+    let searchTimer;
 
-</script>
+    document.getElementById("search").addEventListener("input", event => {
+      clearTimeout(searchTimer);
+
+      const keyword = event.target.value.trim().toLowerCase();
+
+      searchTimer = setTimeout(async () => {
+        if (!keyword) {
+          searchMode = false;
+          loadVideos(1);
+          return;
+        }
+
+        searchMode = true;
+        searchPage = 1;
+
+        document.getElementById("videos").innerHTML =
+          "<p style='padding:10px;'>Sedang mencari video...</p>";
+
+        document.getElementById("pagination").innerHTML = "";
+
+        try {
+          const videos = await fetchAllVideos();
+
+          // Mengabaikan hasil pencarian lama jika kata kunci sudah berubah
+          const latestKeyword = document
+            .getElementById("search")
+            .value.trim()
+            .toLowerCase();
+
+          if (latestKeyword !== keyword) {
+            return;
+          }
+
+          filteredVideos = videos.filter(video =>
+            String(video.title || "")
+              .toLowerCase()
+              .includes(keyword)
+          );
+
+          showSearchPage(1);
+
+        } catch (err) {
+          document.getElementById("videos").innerHTML =
+            "<p style='padding:10px;'>Pencarian gagal. Silakan coba lagi.</p>";
+
+          console.error(err);
+        }
+      }, 300);
+    });
+
+    // Memuat halaman pertama ketika website dibuka
+    loadVideos(1);
+  </script>
 
 </body>
 </html>
