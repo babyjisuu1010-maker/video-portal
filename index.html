@@ -1,23 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-35N6J0GV0G"></script>
-  <script>
+<!DOCTYPE html><html>
+<head>  <!-- Google Analytics -->  <script async src="https://www.googletagmanager.com/gtag/js?id=G-35N6J0GV0G"></script>  <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-35N6J0GV0G');
-  </script>
-
-  <meta charset="UTF-8">
+  </script>  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Asupan Malam</title>
-
-  <link rel="icon" type="image/png" href="favicon.png">
-
-  <style>
+  <title>Asupan Malam</title>  <link rel="icon" type="image/png" href="favicon.png">  <style>
     body {
       margin: 0;
       background: #111;
@@ -46,9 +35,28 @@
       overflow: hidden;
     }
 
+    .thumbnail-wrap {
+      position: relative;
+      width: 100%;
+      background: #000;
+    }
+
     .card img {
       width: 100%;
       display: block;
+    }
+
+    .duration-badge {
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      line-height: 1.3;
     }
 
     .card h3 {
@@ -67,20 +75,12 @@
       display: inline-block;
       margin: 8px;
     }
-  </style>
-
-</head>
-
-<body>
-
-  <header>
+  </style></head><body>  <header>
     <a href="index.html"
        style="color:white;text-decoration:none;">
       Asupan Malam
     </a>
-  </header>
-
-  <div style="padding:15px;">
+  </header>  <div style="padding:15px;">
     <input
       type="text"
       id="search"
@@ -95,13 +95,7 @@
         font-size:16px;
       "
     >
-  </div>
-
-  <div class="grid" id="videos"></div>
-
-  <div id="pagination" style="text-align:center;padding:20px;"></div>
-
-  <script>
+  </div>  <div class="grid" id="videos"></div>  <div id="pagination" style="text-align:center;padding:20px;"></div>  <script>
     let allVideos = [];
     let filteredVideos = [];
 
@@ -113,6 +107,53 @@
 
     let videosPerPage = 20;
     let allVideosPromise = null;
+
+    // Mengubah durasi menjadi format menit:detik atau jam:menit:detik
+    function formatDuration(value) {
+      if (value === null || value === undefined || value === "") {
+        return "";
+      }
+
+      // Jika API sudah memberikan format seperti 12:35
+      if (typeof value === "string" && value.includes(":")) {
+        const parts = value.split(":");
+
+        if (
+          parts.every(part => /^\d+$/.test(part)) &&
+          parts.length >= 2 &&
+          parts.length <= 3
+        ) {
+          return parts.map(part => part.padStart(2, "0")).join(":");
+        }
+
+        return "";
+      }
+
+      // Jika durasi berupa angka dalam satuan detik
+      const seconds = Number(value);
+
+      if (!Number.isFinite(seconds) || seconds < 0) {
+        return "";
+      }
+
+      const totalSeconds = Math.floor(seconds);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const remainingSeconds = totalSeconds % 60;
+
+      if (hours > 0) {
+        return (
+          hours + ":" +
+          String(minutes).padStart(2, "0") + ":" +
+          String(remainingSeconds).padStart(2, "0")
+        );
+      }
+
+      return (
+        minutes + ":" +
+        String(remainingSeconds).padStart(2, "0")
+      );
+    }
 
     // Memuat halaman video biasa
     async function loadVideos(page = 1) {
@@ -208,7 +249,7 @@
       }
     }
 
-    // Menampilkan daftar video
+    // Menampilkan daftar video beserta durasinya
     function renderVideos(videos) {
       const container = document.getElementById("videos");
 
@@ -232,18 +273,34 @@
         const card = document.createElement("div");
         card.className = "card";
 
+        // Bungkus thumbnail agar label durasi berada di pojok
+        const thumbnailWrap = document.createElement("div");
+        thumbnailWrap.className = "thumbnail-wrap";
+
         const img = document.createElement("img");
         img.src = video.single_img || "";
         img.alt = video.title || "Video";
         img.loading = "lazy";
 
+        thumbnailWrap.appendChild(img);
+
+        // Ambil durasi dari data API
+        const duration = formatDuration(video.length);
+
+        if (duration) {
+          const durationBadge = document.createElement("span");
+          durationBadge.className = "duration-badge";
+          durationBadge.textContent = duration;
+          thumbnailWrap.appendChild(durationBadge);
+        }
+
         const title = document.createElement("h3");
         title.textContent = video.title || "Tanpa judul";
 
-        card.appendChild(img);
+        card.appendChild(thumbnailWrap);
         card.appendChild(title);
-        link.appendChild(card);
 
+        link.appendChild(card);
         container.appendChild(link);
       });
     }
@@ -356,7 +413,7 @@
         try {
           const videos = await fetchAllVideos();
 
-          // Mengabaikan hasil pencarian lama jika kata kunci sudah berubah
+          // Mengabaikan hasil pencarian lama jika kata kunci berubah
           const latestKeyword = document
             .getElementById("search")
             .value.trim()
@@ -385,7 +442,5 @@
 
     // Memuat halaman pertama ketika website dibuka
     loadVideos(1);
-  </script>
-
-</body>
+  </script></body>
 </html>
