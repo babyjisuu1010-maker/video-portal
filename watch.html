@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html>
 <head>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-35N6J0GV0G"></script>
@@ -8,15 +7,9 @@
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-35N6J0GV0G');
-  </script>
-
-  <meta charset="UTF-8">
+  </script>  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tonton Video - Asupan Malam</title>
-
-  <link rel="icon" type="image/png" href="favicon.png">
-
-  <style>
+  <title>Tonton Video - Asupan Malam</title>  <link rel="icon" type="image/png" href="favicon.png">  <style>
     body {
       margin: 0;
       background: #111;
@@ -52,8 +45,17 @@
 
     #title {
       margin-top: 15px;
+      margin-bottom: 8px;
       font-size: 20px;
       overflow-wrap: anywhere;
+    }
+
+    #duration {
+      display: none;
+      color: #ccc;
+      font-size: 14px;
+      margin-top: 0;
+      margin-bottom: 15px;
     }
 
     .tutorial {
@@ -114,55 +116,95 @@
       font-size: 14px;
       color: white;
     }
-  </style>
-</head>
-
-<body>
-
-  <div class="header">
+  </style></head><body>  <div class="header">
     <a href="index.html">← Kembali ke Home</a>
-  </div>
+  </div>  <div class="container"><iframe
+  id="player"
+  allowfullscreen
+  title="Pemutar video">
+</iframe>
 
-  <div class="container">
+<h2 id="title">Memuat video...</h2>
 
-    <iframe
-      id="player"
-      allowfullscreen
-      title="Pemutar video">
-    </iframe>
+<p id="duration"></p>
 
-    <h2 id="title">Memuat video...</h2>
+<!-- Panduan menonton -->
+<div class="tutorial">
+  <h3>📌 CARA MENONTON VIDEO</h3>
 
-    <!-- Panduan menonton -->
-    <div class="tutorial">
-      <h3>📌 CARA MENONTON VIDEO</h3>
+  <ol>
+    <li>Tekan tombol Play pada pemutar video untuk mulai menonton.</li>
+    <li>Jika muncul tab atau jendela iklan, tutup tab tersebut dan kembali ke halaman video.</li>
+    <li>Tekan tombol Play kembali jika video belum berjalan.</li>
+    <li>Ulangi jika diperlukan sampai video berhasil diputar.</li>
+    <li>Setelah video mulai diputar, tekan tombol Full Screen (⛶) di bagian kanan atas pemutar video agar lebih nyaman menonton.</li>
+  </ol>
 
-      <ol>
-        <li>Tekan tombol Play pada pemutar video untuk mulai menonton.</li>
-        <li>Jika muncul tab atau jendela iklan, tutup tab tersebut dan kembali ke halaman video.</li>
-        <li>Tekan tombol Play kembali jika video belum berjalan.</li>
-        <li>Ulangi jika diperlukan sampai video berhasil diputar.</li>
-        <li>Setelah video mulai diputar, tekan tombol Full Screen (⛶) di bagian kanan atas pemutar video agar tidak ada iklan yang menghalangi.</li>
-      </ol>
+  <p class="note">
+    Catatan: Iklan pop-up dapat berasal dari layanan pemutar video pihak ketiga. Mode layar penuh tidak menjamin iklan berhenti muncul.
+  </p>
+</div>
 
-      <p class="note">
-        Catatan: Iklan pop-up dapat berasal dari layanan pemutar video pihak ketiga.
-        
-      </p>
-    </div>
+<h3>Video Lainnya</h3>
 
-    <h3>Video Lainnya</h3>
+<div id="relatedVideos"></div>
 
-    <div id="relatedVideos"></div>
-
-  </div>
-
-  <script>
+  </div>  <script>
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
 
     const player = document.getElementById("player");
     const titleElement = document.getElementById("title");
+    const durationElement = document.getElementById("duration");
+
+    // Mengubah durasi menjadi format jam:menit:detik atau menit:detik
+    function formatDuration(value) {
+      if (value === null || value === undefined || value === "") {
+        return "";
+      }
+
+      // Jika durasi sudah berupa format seperti 12:35 atau 1:05:30
+      if (typeof value === "string" && value.includes(":")) {
+        const parts = value.split(":");
+
+        if (
+          parts.length >= 2 &&
+          parts.length <= 3 &&
+          parts.every(part => /^\d+$/.test(part))
+        ) {
+          return parts
+            .map(part => part.padStart(2, "0"))
+            .join(":");
+        }
+
+        return "";
+      }
+
+      // Jika API memberikan durasi dalam detik
+      const seconds = Number(value);
+
+      if (!Number.isFinite(seconds) || seconds < 0) {
+        return "";
+      }
+
+      const totalSeconds = Math.floor(seconds);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const remainingSeconds = totalSeconds % 60;
+
+      if (hours > 0) {
+        return (
+          hours + ":" +
+          String(minutes).padStart(2, "0") + ":" +
+          String(remainingSeconds).padStart(2, "0")
+        );
+      }
+
+      return (
+        minutes + ":" +
+        String(remainingSeconds).padStart(2, "0")
+      );
+    }
 
     if (code) {
       player.src = `https://dood.wf/e/${encodeURIComponent(code)}`;
@@ -179,17 +221,31 @@
         }
 
         const data = await response.json();
+
+        if (!data.result || !Array.isArray(data.result.files)) {
+          throw new Error("Data video tidak valid");
+        }
+
         const files = data.result.files;
 
         const video = files.find(v => v.file_code === code);
 
         if (video) {
-          titleElement.textContent = video.title;
-          document.title = video.title + " - Asupan Malam";
+          titleElement.textContent = video.title || "Tanpa judul";
+          document.title = (video.title || "Tonton Video") + " - Asupan Malam";
+
+          // Menampilkan durasi tepat di bawah judul
+          const duration = formatDuration(video.length);
+
+          if (duration) {
+            durationElement.textContent = "⏱️ Durasi: " + duration;
+            durationElement.style.display = "block";
+          }
         } else {
           titleElement.textContent = "Video tidak ditemukan";
         }
 
+        // Menampilkan video lainnya
         const related = files
           .filter(v => v.file_code !== code)
           .sort(() => Math.random() - 0.5)
@@ -229,7 +285,5 @@
     if (code) {
       loadTitle();
     }
-  </script>
-
-</body>
+  </script></body>
 </html>
