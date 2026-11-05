@@ -76,7 +76,7 @@
       margin: 8px;
     }
   </style></head><body>  <header>
-    <a href="index.html"
+    <a href="/"
        style="color:white;text-decoration:none;">
       Asupan Malam
     </a>
@@ -108,13 +108,22 @@
     let videosPerPage = 20;
     let allVideosPromise = null;
 
+    // Membuat slug dari judul video
+    function toSlug(title) {
+      return String(title || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/[\s_-]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
     // Mengubah durasi menjadi format menit:detik atau jam:menit:detik
     function formatDuration(value) {
       if (value === null || value === undefined || value === "") {
         return "";
       }
 
-      // Jika API sudah memberikan format seperti 12:35
       if (typeof value === "string" && value.includes(":")) {
         const parts = value.split(":");
 
@@ -129,7 +138,6 @@
         return "";
       }
 
-      // Jika durasi berupa angka dalam satuan detik
       const seconds = Number(value);
 
       if (!Number.isFinite(seconds) || seconds < 0) {
@@ -155,7 +163,6 @@
       );
     }
 
-    // Memuat halaman video biasa
     async function loadVideos(page = 1) {
       try {
         searchMode = false;
@@ -191,7 +198,6 @@
       }
     }
 
-    // Mengambil video dari seluruh halaman API
     async function fetchAllVideos() {
       if (allVideosPromise) {
         return allVideosPromise;
@@ -221,7 +227,6 @@
           videosPerPage = videos.length;
         }
 
-        // Mengambil halaman berikutnya secara berurutan
         for (let page = 2; page <= pages; page++) {
           const response = await fetch(`/api/video?page=${page}`);
 
@@ -249,7 +254,6 @@
       }
     }
 
-    // Menampilkan daftar video beserta durasinya
     function renderVideos(videos) {
       const container = document.getElementById("videos");
 
@@ -264,8 +268,9 @@
       videos.forEach(video => {
         const link = document.createElement("a");
 
-        link.href =
-          "watch.html?code=" + encodeURIComponent(video.file_code);
+        // Link sekarang memakai slug judul
+        const slug = toSlug(video.title);
+        link.href = slug ? "/watch/" + slug : "watch.html?code=" + encodeURIComponent(video.file_code);
 
         link.style.textDecoration = "none";
         link.style.color = "white";
@@ -273,7 +278,6 @@
         const card = document.createElement("div");
         card.className = "card";
 
-        // Bungkus thumbnail agar label durasi berada di pojok
         const thumbnailWrap = document.createElement("div");
         thumbnailWrap.className = "thumbnail-wrap";
 
@@ -284,7 +288,6 @@
 
         thumbnailWrap.appendChild(img);
 
-        // Ambil durasi dari data API
         const duration = formatDuration(video.length);
 
         if (duration) {
@@ -305,7 +308,6 @@
       });
     }
 
-    // Pagination untuk daftar video biasa dan hasil pencarian
     function renderPagination() {
       const container = document.getElementById("pagination");
 
@@ -368,7 +370,6 @@
       }
     }
 
-    // Menampilkan satu halaman hasil pencarian
     function showSearchPage(page) {
       const pages = Math.max(
         1,
@@ -387,7 +388,6 @@
       renderPagination();
     }
 
-    // Melakukan pencarian pada seluruh halaman API
     let searchTimer;
 
     document.getElementById("search").addEventListener("input", event => {
@@ -413,7 +413,6 @@
         try {
           const videos = await fetchAllVideos();
 
-          // Mengabaikan hasil pencarian lama jika kata kunci berubah
           const latestKeyword = document
             .getElementById("search")
             .value.trim()
@@ -440,7 +439,6 @@
       }, 300);
     });
 
-    // Memuat halaman pertama ketika website dibuka
     loadVideos(1);
   </script></body>
-</html>
+    </html>
