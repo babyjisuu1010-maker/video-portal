@@ -117,7 +117,7 @@
       color: white;
     }
   </style></head><body>  <div class="header">
-    <a href="index.html">← Kembali ke Home</a>
+    <a href="/">← Kembali ke Home</a>
   </div>  <div class="container"><iframe
   id="player"
   allowfullscreen
@@ -150,20 +150,33 @@
 <div id="relatedVideos"></div>
 
   </div>  <script>
+    // Membuat slug dari judul
+    function toSlug(title) {
+      return String(title || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/[\s_-]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    // Ambil slug dari path /watch/judul-video
+    // Fallback: masih support ?code=xxx (link lama)
     const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
+    const codeFromQuery = params.get("code");
+
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const slugFromPath = pathParts[pathParts.length - 1];
 
     const player = document.getElementById("player");
     const titleElement = document.getElementById("title");
     const durationElement = document.getElementById("duration");
 
-    // Mengubah durasi menjadi format jam:menit:detik atau menit:detik
     function formatDuration(value) {
       if (value === null || value === undefined || value === "") {
         return "";
       }
 
-      // Jika durasi sudah berupa format seperti 12:35 atau 1:05:30
       if (typeof value === "string" && value.includes(":")) {
         const parts = value.split(":");
 
@@ -180,7 +193,6 @@
         return "";
       }
 
-      // Jika API memberikan durasi dalam detik
       const seconds = Number(value);
 
       if (!Number.isFinite(seconds) || seconds < 0) {
@@ -206,15 +218,24 @@
       );
     }
 
-    if (code) {
-      player.src = `https://dood.wf/e/${encodeURIComponent(code)}`;
-    } else {
-      titleElement.textContent = "Video tidak ditemukan";
-    }
+    // Cari video berdasarkan slug atau code, cek beberapa halaman
+    async function findVideo() {
+      // Jika masih pakai link lama ?code=
+      if (codeFromQuery) {
+        return { file_code: codeFromQuery, title: null, length: null, foundByCode: true };
+      }
 
-    async function loadTitle() {
-      try {
-        const response = await fetch("/api/video?page=1");
+      if (!slugFromPath || slugFromPath === "watch.html") {
+        return null;
+      }
+
+      let page = 1;
+      let totalPages = 1;
+      let found = null;
+
+      // Cari sampai ketemu atau halaman habis (maks 10 halaman biar tidak terlalu lama)
+      while (page <= totalPages && page <= 10) {
+        const response = await fetch(`/api/video?page=${page}`);
 
         if (!response.ok) {
           throw new Error("Gagal mengambil data video");
@@ -226,28 +247,78 @@
           throw new Error("Data video tidak valid");
         }
 
-        const files = data.result.files;
+        totalPages = Number(data.result.total_pages) || 1;
 
-        const video = files.find(v => v.file_code === code);
+        found = data.result.files.find(v => toSlug(v.title) === slugFromPath);
 
-        if (video) {
-          titleElement.textContent = video.title || "Tanpa judul";
-          document.title = (video.title || "Tonton Video") + " - Asupan Malam";
-
-          // Menampilkan durasi tepat di bawah judul
-          const duration = formatDuration(video.length);
-
-          if (duration) {
-            durationElement.textContent = "⏱️ Durasi: " + duration;
-            durationElement.style.display = "block";
-          }
-        } else {
-          titleElement.textContent = "Video tidak ditemukan";
+        if (found) {
+          return found;
         }
 
-        // Menampilkan video lainnya
+        page++;
+      }
+
+      return null;
+    }
+
+    async function loadVideo() {
+      try {
+        const video = await findVideo();
+
+        if (!video) {
+          titleElement.textContent = "Video tidak ditemukan";
+          return;
+        }
+
+        // Set player
+        player.src = `https://dood.wf/e/${encodeURIComponent(video.file_code)}`;
+
+        // Judul
+        if (video.title) {
+          titleElement.textContent = video.title;
+          document.title = video.title + " - Asupan Malam";
+        } else if (video.foundByCode) {
+          // Link lama, judul belum diketahui → coba ambil dari API
+          titleElement.textContent = "Memuat judul...";
+        }
+
+        // Durasi
+        const duration = formatDuration(video.length);
+        if (duration) {
+          durationElement.textContent = "⏱️ Durasi: " + duration;
+          durationElement.style.display = "block";
+        }
+
+        // Ambil data untuk related videos + lengkapi judul jika perlu
+        const response = await fetch("/api/video?page=1");
+        if (!response.ok) return;
+
+        const data = await response.json();
+        if (!data.result || !Array.isArray(data.result.files)) return;
+
+        const files = data.result.files;
+
+        // Jika datang dari link lama (?code=), lengkapi judul & durasi
+        if (video.foundByCode) {
+          const fullVideo = files.find(v => v.file_code === video.file_code);
+          if (fullVideo) {
+            titleElement.textContent = fullVideo.title || "Tanpa judul";
+            document.title = (fullVideo.title || "Tonton Video") + " - Asupan Malam";
+
+            const dur = formatDuration(fullVideo.length);
+            if (dur) {
+              durationElement.textContent = "⏱️ Durasi: " + dur;
+              durationElement.style.display = "block";
+            }
+          } else {
+            titleElement.textContent = "Video";
+          }
+        }
+
+        // Video terkait
+        const currentCode = video.file_code;
         const related = files
-          .filter(v => v.file_code !== code)
+          .filter(v => v.file_code !== currentCode)
           .sort(() => Math.random() - 0.5)
           .slice(0, 8);
 
@@ -256,7 +327,8 @@
 
         related.forEach(v => {
           const link = document.createElement("a");
-          link.href = "watch.html?code=" + encodeURIComponent(v.file_code);
+          const slug = toSlug(v.title);
+          link.href = slug ? "/watch/" + slug : "watch.html?code=" + encodeURIComponent(v.file_code);
           link.style.textDecoration = "none";
 
           const card = document.createElement("div");
@@ -277,13 +349,11 @@
         });
 
       } catch (err) {
-        titleElement.textContent = "Judul video tidak dapat dimuat";
+        titleElement.textContent = "Gagal memuat video";
         console.error(err);
       }
     }
 
-    if (code) {
-      loadTitle();
-    }
+    loadVideo();
   </script></body>
 </html>
